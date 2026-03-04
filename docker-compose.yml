@@ -62,6 +62,9 @@ services:
     environment:
       CI: "1"
       WATCHPACK_POLLING: "true"
+      # Set to your machine's LAN IP so physical devices can reach Metro.
+      # Find it with: ipconfig getifaddr en0  (macOS)
+      REACT_NATIVE_PACKAGER_HOSTNAME: ${EXPO_HOST_IP:-localhost}
     stdin_open: true
     tty: true
 

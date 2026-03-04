@@ -38,11 +38,69 @@ docker compose up --build
 ```
 
 This starts:
-- **ForgeAI** (Rails) on `http://localhost:3000`
-- **ForgeAIService** (FastAPI) on `http://localhost:8000`
-- **ForgeAI-Mobile** (Expo/Metro) on `http://localhost:8081`
-- **PostgreSQL** on `localhost:5432`
-- **Redis** on `localhost:6379`
+
+| Service | URL |
+|---|---|
+| **ForgeAI** (Rails) | http://localhost:3000 |
+| **ForgeAIService** (FastAPI) | http://localhost:8000 |
+| **ForgeAI-Mobile** (Expo/Metro) | http://localhost:8081 |
+| **PostgreSQL** | localhost:5432 |
+| **Redis** | localhost:6379 |
+
+### Accessing the mobile app with Expo Go
+
+The Metro bundler runs inside Docker and serves the JavaScript bundle to your device.
+
+#### iOS Simulator (same machine)
+
+No extra config needed. With the services running, open a second terminal:
+
+```bash
+cd ForgeAI-Mobile
+npx expo start --ios --port 8081
+```
+
+Or press `i` in the `mobile` container logs to launch the simulator.
+
+#### Physical device (iPhone / Android on the same Wi-Fi)
+
+Your phone needs to reach the Metro bundler on your Mac's LAN IP. Before starting the services, set your LAN IP:
+
+```bash
+# macOS — find your LAN IP
+export EXPO_HOST_IP=$(ipconfig getifaddr en0)
+
+# Start everything
+docker compose up --build
+```
+
+Once running:
+
+1. Install **Expo Go** on your phone from the App Store / Play Store.
+2. Open the `mobile` container logs — you'll see a QR code printed by Expo.
+3. **iPhone**: scan the QR code with the Camera app. It will open in Expo Go.
+4. **Android**: open Expo Go and tap "Scan QR code".
+
+If the QR code doesn't appear in the logs, open `http://<your-lan-ip>:8081` in your phone's browser.
+
+#### Tunnel mode (any network / remote device)
+
+The project includes a Cloudflare tunnel script that gives you a public URL, no LAN required. This needs `cloudflared` installed:
+
+```bash
+# Install cloudflared (macOS)
+brew install cloudflare/cloudflare/cloudflared
+
+# Copy it somewhere the container expects
+cp $(which cloudflared) /tmp/cloudflared
+
+# Run outside Docker for simplicity
+cd ForgeAI-Mobile
+npm install
+npm run start:tunnel
+```
+
+This prints a QR code with a public `exps://` URL you can scan from any device.
 
 ### Working on a single sub-project
 
