@@ -1,0 +1,9 @@
+[submodule "ForgeAI"]
+	path = ForgeAI
+	url = https://github.com/jon-sayer/ForgeAI.git
+[submodule "ForgeAI-Mobile"]
+	path = ForgeAI-Mobile
+	url = git@github.com:jon-sayer/ForgeAI-Mobile.git
+[submodule "ForgeAIService"]
+	path = ForgeAIService
+	url = git@github.com:jon-sayer/ForgeAIService.git
