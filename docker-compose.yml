@@ -36,6 +36,8 @@ services:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/forge_ai_development
       REDIS_URL: redis://redis:6379/0
       AI_SERVICE_URL: http://ai-service:8000
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-key-change-me}
+      AI_TOOLS_SHARED_SECRET: ${AI_TOOLS_SHARED_SECRET:-dev-secret-change-me}
     command: bash -c "bundle install && bin/rails db:prepare && bin/rails server -b 0.0.0.0"
 
   # --- ForgeAIService (FastAPI / Python) ---
@@ -47,7 +49,16 @@ services:
       - ./ForgeAIService:/workspaces/ForgeAIService:cached
     ports:
       - "8000:8000"
-    command: bash -c "pip install -r /workspaces/ForgeAIService/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      - web
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-key-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      OPENAI_CHAT_MODEL: ${OPENAI_CHAT_MODEL:-gpt-4.1-nano}
+      RAILS_URL: http://web:3000
+      AI_TOOLS_SHARED_SECRET: ${AI_TOOLS_SHARED_SECRET:-dev-secret-change-me}
+    command: bash -c "pip install -r /workspaces/ForgeAIService/requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     working_dir: /workspaces/ForgeAIService
 
   # --- ForgeAI-Mobile (Expo / Metro) ---
