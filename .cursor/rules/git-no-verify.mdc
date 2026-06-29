@@ -1,0 +1,34 @@
+---
+description: Never bypass git hooks with --no-verify; fix hook failures instead
+alwaysApply: true
+---
+
+# Git hooks — no --no-verify
+
+Never run `git commit --no-verify`, `git push --no-verify`, or any other git command with `--no-verify` / `-n` to skip hooks.
+
+This applies even when hooks fail due to environment issues (missing Ruby, bundler, mapfile, etc.).
+
+## When hooks fail
+
+1. Fix the underlying issue (code, RuboCop offenses, failing specs, hook script bugs).
+2. If the agent environment cannot run hooks, **stop and tell the user** — do not bypass.
+3. Ask the user to commit/push locally, or to explicitly approve skipping hooks in their message if they accept the risk.
+
+## Allowed only when
+
+The user **explicitly** writes in the same message that hooks may be skipped, e.g. "commit with --no-verify" or "skip pre-commit for this commit".
+
+## Examples
+
+```bash
+# ❌ Never (unless user explicitly requested skip in this message)
+git commit --no-verify -m "..."
+git push --no-verify
+
+# ✅ Fix offenses, then commit normally
+bundle exec rubocop -A path/to/file.rb
+git commit -m "..."
+
+# ✅ Or ask the user to commit locally when hooks cannot run here
+```

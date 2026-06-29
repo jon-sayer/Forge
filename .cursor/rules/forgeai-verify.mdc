@@ -1,0 +1,79 @@
+---
+description: Run RuboCop and RSpec on ForgeAI changes before finishing work or committing
+alwaysApply: true
+---
+
+# ForgeAI — verify RuboCop and specs
+
+Before marking ForgeAI work complete, proposing a commit, or opening a PR, **run checks and fix failures**. Do not skip with `--no-verify` (see `git-no-verify` rule).
+
+## When to run
+
+Run after editing Ruby under `ForgeAI/` — especially `app/`, `config/`, `spec/`, and `lib/`.
+
+## RuboCop
+
+Run on **changed** `.rb` files (not the whole repo unless a broad refactor):
+
+```bash
+cd ForgeAI
+bundle exec rubocop --force-exclusion path/to/changed_file.rb
+```
+
+Auto-correct safe offenses when appropriate:
+
+```bash
+bundle exec rubocop -A path/to/changed_file.rb
+```
+
+Pre-commit runs the same check on staged files via [`.githooks/pre-commit`](ForgeAI/.githooks/pre-commit).
+
+## Specs
+
+Run **specs that cover the change** — at minimum the request/integration/system specs for touched controllers, jobs, or flows:
+
+```bash
+cd ForgeAI
+bundle exec rspec spec/requests/relevant_spec.rb spec/integration/relevant_spec.rb
+```
+
+For onboarding/trial/package work, include specs such as `onboarding_trial_spec`, `onboardings_spec`, `mobile_companion_journey_spec`, and related system specs.
+
+All examples must pass (pending placeholders are OK).
+
+## Docker when local Ruby is wrong
+
+If `bundle exec` fails with a Ruby version mismatch (host Ruby ≠ Gemfile), use the monorepo `web` service from the **Forge repo root**:
+
+```bash
+cd /path/to/Forge
+docker compose run --rm -T web bash -lc '
+  cd /workspaces/ForgeAI
+  bundle exec rubocop --force-exclusion app/path/to/file.rb
+'
+```
+
+For specs, set the test database:
+
+```bash
+docker compose run --rm \
+  -e DATABASE_URL="postgres://postgres:postgres@postgres:5432/forge_ai_test" \
+  -e RAILS_ENV=test \
+  web bash -lc '
+    cd /workspaces/ForgeAI
+    bin/rails db:prepare
+    bundle exec rspec spec/path/to_spec.rb
+  '
+```
+
+Do **not** mutate mounted files inside Docker (e.g. `sed` on `Gemfile` / `.ruby-version`). Rebuild `web` if the image Ruby does not match the Gemfile.
+
+## If checks cannot run here
+
+1. Fix code issues you can see (offenses, obvious spec gaps).
+2. Tell the user checks were not verified in this environment and why.
+3. Ask them to run RuboCop + specs locally, or to commit from the dev container — do **not** use `--no-verify` unless they explicitly allow it in the same message.
+
+## Done means green
+
+Do not claim a ForgeAI task is finished while RuboCop reports offenses or relevant specs fail.
