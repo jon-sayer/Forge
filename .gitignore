@@ -10,3 +10,6 @@
 .env
 .env.local
 .env.*.local
+
+# Local product notes / feedback (not tracked)
+PRODUCT_FEEDBACK.md
